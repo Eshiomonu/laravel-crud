@@ -9,21 +9,23 @@
         </form>
         <a href="{{route('products.create')}}" class="btn btn-success">Add New Product</a>    
     </div>
-    @if(session::has('success'))
+    @if(session()->has('success'))
     <div class="alert alert-success">
-        <span>{{ session::get('success') }}</span>
+        <span>{{ session('success') }}</span>
     </div>
-    @endif
+@endif
+
     <table class="table table-stripe table-bordered">
         <thead>
             <tr>
                 <th>No</th>
                 <th>Product Name</th>
+                 <th>Description</th>
                 <th>Category</th>
                 <th>Quantity</th>
-                <th>Price</th>
+                <th>Price (N)</th>
                 <th>Status</th>
-                <th>Description</th>
+               
                 <th>Actions</th>
             </tr>
         </thead>
@@ -33,14 +35,21 @@
             <tr>
                 <td>{{ $loop->iteration }}</td>
                 <td>{{ $product->name }}</td>
+                <td>{{ $product->description }}</td>
                 <td>{{ $product->category->name }}</td>
                 <td>{{ $product->quantity }}</td>
                 <td>{{ $product->price }}</td>
                 <td>{{ $product->status }}</td>
-                <td>{{ $product->description }}</td>
+                
                 <td>
-                    <a href="#" class="btn btn-sm btn-info">Edit</a>
-                    <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                    <a href="{{ route('products.show', $product->id) }}" class="btn btn-sm btn-info">View</a>
+                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                    </form>
+
                 </td>
             </tr>
             @endforeach

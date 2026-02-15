@@ -33,12 +33,63 @@ class ProductController extends Controller
             
         ]);
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $request->merge(['image' => $imagePath]);
+            $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        Product::create($request->$validated());
+        Product::create($validated);
 
-        return redirect()->route('products.index')->with('success', 'Product created successfully.');
-    }   
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product created successfully.');
+    }
+    
+    public function show($id)
+    {
+        $product = Product::findOrFail($id);
+        return view('product.show', compact('product'));
+    }
+
+    public function edit($id)
+    {
+        $product = Product::findOrFail($id);
+        $categories = Category::all();
+        return view('product.edit', compact('product', 'categories'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'description' => 'nullable|string',
+            'quantity' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+            'status' => 'required|in:active,inactive',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($validated);
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product deleted successfully.');
+    }
+
+    
 }
