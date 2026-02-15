@@ -8,9 +8,14 @@ use App\Models\Category;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index( Request $request)
     {
-        $products = Product::all();
+        // $products = Product::all();
+        $query = Product::query();
+        if(request()->has('search') && $request->sea('search') != '') {
+            $query->where('name', 'like', '%' . request('search') . '%');
+        }
+        $products = $query->latest()->paginate(4);
         return view('product.product_list', compact('products'));
     }
 
@@ -91,5 +96,30 @@ class ProductController extends Controller
             ->with('success', 'Product deleted successfully.');
     }
 
-    
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+        $products = Product::where('name', 'like', "%$query%")->get();
+        return view('product.search_results', compact('products', 'query'));
+    }
+
+    public function restoreProduct($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->restore();
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product restored successfully.');
+    }   
+
+    public function forceDelete($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->forceDelete();
+
+        return redirect()
+            ->route('products.deleted')
+            ->with('success', 'Product permanently deleted successfully.');
+    }
 }
